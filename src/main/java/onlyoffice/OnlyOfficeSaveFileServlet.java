@@ -131,7 +131,7 @@ public class OnlyOfficeSaveFileServlet extends HttpServlet
                 Boolean inBody = true;
 
                 if (token == null || token == "") {
-                    String jwth = (String) settings.get("onlyoffice.jwtHeader");
+                    String jwth = (String) settings.get("onlyoffice.jwtheader");
                     String header = (String) request.getHeader(jwth == null || jwth.isEmpty() ? "Authorization" : jwth);
                     token = (header != null && header.startsWith("Bearer ")) ? header.substring(7) : header;
                     inBody = false;

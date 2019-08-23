@@ -86,22 +86,25 @@ public class OnlyOfficeConfServlet extends HttpServlet
 		PluginSettings pluginSettings = pluginSettingsFactory.createGlobalSettings();
 		String apiUrl = (String) pluginSettings.get("onlyoffice.apiUrl");
 		String jwtSecret = (String) pluginSettings.get("onlyoffice.jwtSecret");
+		String jwtheader = (String) pluginSettings.get("onlyoffice.jwtheader");
 		if (apiUrl == null || apiUrl.isEmpty()) { apiUrl = ""; }
 		if (jwtSecret == null || jwtSecret.isEmpty()) { jwtSecret = ""; }
+		if (jwtheader == null || jwtheader.isEmpty()) { jwtheader = "Authorization"; }
 
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter writer = response.getWriter();
 
-		writer.write(getTemplate(apiUrl, jwtSecret));
+		writer.write(getTemplate(apiUrl, jwtSecret, jwtheader));
 	}
 	
-	private String getTemplate(String apiUrl, String jwtSecret)
+	private String getTemplate(String apiUrl, String jwtSecret, String jwtheader)
 			throws UnsupportedEncodingException
 	{
 		Map<String, Object> contextMap = MacroUtils.defaultVelocityContext();
 
 		contextMap.put("docserviceApiUrl", apiUrl);
 		contextMap.put("docserviceJwtSecret", jwtSecret);
+		contextMap.put("docserviceJwtHeader", jwtheader);
 
 		return VelocityUtils.getRenderedTemplate("templates/configure.vm", contextMap);
 	}
@@ -127,15 +130,18 @@ public class OnlyOfficeConfServlet extends HttpServlet
 
 		String apiUrl;
 		String jwtSecret;
+		String jwtheader;
 		try
 		{
 			JSONObject jsonObj = new JSONObject(body);
+			response.getWriter().write("{\"success\": false, \"message\": \"Speichern...\"}");
 
 			apiUrl = jsonObj.getString("apiUrl");
 			if (!apiUrl.endsWith("/")) {
 				apiUrl += "/";
 			}
 			jwtSecret = jsonObj.getString("jwtSecret");
+			jwtheader = jsonObj.getString("jwtheader");
 		}
 		catch (Exception ex)
 		{
@@ -153,6 +159,8 @@ public class OnlyOfficeConfServlet extends HttpServlet
 		PluginSettings pluginSettings = pluginSettingsFactory.createGlobalSettings();
 		pluginSettings.put("onlyoffice.apiUrl", apiUrl);
 		pluginSettings.put("onlyoffice.jwtSecret", jwtSecret);
+		pluginSettings.put("onlyoffice.jwtheader", jwtheader);
+		response.getWriter().write("{\"success\": false, \"message\": \"Speichern...\"}");
 
 		log.debug("Checking docserv url");
 		if (!CheckDocServUrl(apiUrl)) {
